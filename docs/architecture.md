@@ -1,365 +1,1094 @@
-architecture.md
-🏗️ 1. Especificações Técnicas (Tech Spec) - Midnight Vinyl
-Este documento descreve a arquitetura técnica, modelo de dados, tecnologias e organização do código utilizados no desenvolvimento da plataforma Midnight Vinyl.
+# 🛠️ Especificação Técnica (Architecture) - Midnight Vinyl
 
-O sistema será desenvolvido como uma aplicação web responsiva, utilizando HTML5, JavaScript ES6+, Bulma, Sass/SCSS e jQuery, com persistência simulada através de uma API fake, além do consumo de uma API pública de músicas.
+## 1. Visão Geral da Arquitetura
 
-2. Arquitetura da Aplicação
-A aplicação seguirá uma arquitetura modular baseada em camadas.
+O **Midnight Vinyl** será desenvolvido como uma aplicação web frontend utilizando HTML, CSS e JavaScript.
 
-┌───────────────────────────────────────────┐
-│                INTERFACE                  │
-│       HTML + Bulma + SCSS + JS            │
-├───────────────────────────────────────────┤
-│             COMPONENTES UI                │
-│ Navbar | Cards | Forms | Modal | Listas  │
-├───────────────────────────────────────────┤
-│              SERVICES                     │
-│ AuthService | MusicService | PlaylistService│
-├───────────────────────────────────────────┤
-│              APIs                         │
-│ API Fake / JSON Server + API Pública      │
-├───────────────────────────────────────────┤
-│              PERSISTÊNCIA                 │
-│ JSON Server + localStorage/sessionStorage │
-└───────────────────────────────────────────┘
+A aplicação será estruturada de forma modular, separando responsabilidades relacionadas à autenticação, comunicação com APIs, gerenciamento de playlists, armazenamento de sessão e validação de formulários.
 
-Fluxo principal
-Usuário
-   ↓
-Interface HTML
-   ↓
-Eventos JavaScript / jQuery
-   ↓
-Validação
-   ↓
-Service
-   ↓
-API
-   ↓
-Tratamento dos dados
-   ↓
-Renderização dinâmica
-   ↓
-Interface
+A arquitetura será composta por:
 
-3. Tecnologias e Versões
-As principais tecnologias utilizadas serão:
+```text
+┌───────────────────────────────┐
+│           Frontend            │
+│ HTML + MaterializeCSS + JS    │
+└───────────────┬───────────────┘
+                │
+        ┌───────┴────────┐
+        │                │
+        ▼                ▼
+┌───────────────┐  ┌─────────────────┐
+│  JSON Server  │  │  API Pública    │
+│               │  │    de Música    │
+│ Usuários      │  │                 │
+│ Playlists     │  │ Artistas        │
+└───────────────┘  │ Músicas         │
+                   │ Recomendações   │
+                   └─────────────────┘
+
+
+---
+
+2. Tecnologias
+
+2.1 Frontend
 
 HTML5
+
 CSS3
-JavaScript ES6+
-Bulma
-Sass/SCSS
+
+JavaScript
+
 jQuery
-jQuery Validation
-Node.js
-NPM
+
+Sass / SCSS
+
+MaterializeCSS
+
+
+2.2 Backend Simulado
+
 JSON Server
-Figma
-Google Stitch
-Git/GitHub
+
+
+O JSON Server será utilizado para disponibilizar uma API REST local para persistência dos dados.
+
+2.3 API Externa
+
+Será utilizada uma API pública relacionada a música para obtenção de dados de artistas e músicas e geração das recomendações.
+
+A API escolhida deverá permitir consultas relacionadas às preferências informadas pelo usuário.
+
+2.4 Ferramentas
+
+Node.js
+
+NPM
+
+Git
+
+GitHub
+
 ESLint
+
 Prettier
-Framework CSS
-O framework CSS escolhido será o Bulma, substituindo Bootstrap.
 
-O Bulma será utilizado principalmente para:
 
-grid;
-columns;
-buttons;
-forms;
-cards;
-navbar;
-modal;
-responsividade;
-helpers de espaçamento e alinhamento.
-CSS/SCSS próprio será utilizado para adaptar o Bulma à identidade visual do Midnight Vinyl.
+
+---
+
+3. Arquitetura de Camadas
+
+A aplicação será organizada em três principais camadas:
+
+Apresentação
+
+Responsável pela interface e interação com o usuário.
+
+HTML
+MaterializeCSS
+SCSS
+DOM
+
+Aplicação
+
+Responsável pela lógica da aplicação.
+
+JavaScript
+jQuery
+Validações
+Autenticação
+Processamento das recomendações
+Gerenciamento das playlists
+
+Dados
+
+Responsável pela comunicação com fontes externas.
+
+JSON Server
+API Pública de Música
+Web Storage
+
+
+---
 
 4. Modelo de Dados
-O modelo representa os principais objetos manipulados pela aplicação.
+
+O sistema possuirá inicialmente duas entidades principais:
+
+USUARIO 1 ─────────── N PLAYLIST
+
+Um usuário pode possuir várias playlists, enquanto cada playlist pertence a apenas um usuário.
+
+
+---
+
+4.1 Entidade USUARIO
+
+Campo	Tipo	Descrição
+
+id	string	Identificador único do usuário
+email	string	E-mail utilizado para login
+senha	string	Senha do usuário
+
+
+
+---
+
+4.2 Entidade PLAYLIST
+
+Campo	Tipo	Descrição
+
+id	string	Identificador único da playlist
+usuarioId	string	ID do usuário proprietário
+titulo	string	Nome da playlist
+capa	string	URL da imagem da capa
+dataCriacao	string	Data de criação
+duracao	string	Duração total
+musicas	array	Lista de músicas da playlist
+
+
+
+---
+
+4.3 Estrutura de uma música
+
+Cada item armazenado dentro de musicas poderá possuir:
+
+Campo	Tipo	Descrição
+
+id	string	Identificador da música
+titulo	string	Nome da música
+artista	string	Nome do artista
+duracao	string	Duração da música
+capa	string	URL da capa
+
+
+
+---
+
+5. Modelo Entidade-Relacionamento
 
 erDiagram
+    USUARIO ||--o{ PLAYLIST : cria
 
     USUARIO {
         string id PK
-        string nome
         string email
         string senha
-        string criado_em
-    }
-
-    REFERENCIA {
-        string id PK
-        string usuario_id FK
-        string tipo
-        string valor
     }
 
     PLAYLIST {
         string id PK
-        string usuario_id FK
-        string nome
-        string descricao
-        int quantidade_musicas
-        string duracao_total
-        string criada_em
-    }
-
-    MUSICA {
-        string id PK
-        string playlist_id FK
+        string usuarioId FK
         string titulo
-        string artista
-        string album
-        string imagem
+        string capa
+        string dataCriacao
         string duracao
-        string external_id
+        array musicas
     }
 
-    USUARIO ||--o{ REFERENCIA : "informa"
-    USUARIO ||--o{ PLAYLIST : "cria"
-    PLAYLIST ||--o{ MUSICA : "possui"
 
-5. Dicionário de Dados
-👤 Coleção: usuarios
-Responsável por armazenar os usuários cadastrados.
+---
 
-id
-Identificador único do usuário.
+6. Estrutura do JSON Server
 
-nome
-Nome informado durante o cadastro.
-
-email
-E-mail utilizado para autenticação.
-
-Deve ser único.
-
-senha
-Senha utilizada para autenticação.
-
-A aplicação deverá evitar armazenar a senha em texto puro em uma implementação real. Para fins acadêmicos e da API fake, a estrutura poderá simular a autenticação.
-
-criado_em
-Data e horário de criação da conta.
-
-🎵 Coleção: referencias
-Armazena as referências fornecidas pelo usuário no Crate Digger.
-
-id
-Identificador da referência.
-
-usuario_id
-ID do usuário responsável pela referência.
-
-tipo
-Tipo da referência:
-
-artista
-musica
-genero
-vibe
-
-valor
-Texto informado pelo usuário.
-
-Exemplo:
-
-{
-    "tipo": "artista",
-    "valor": "The Weeknd"
-}
-
-📀 Coleção: playlists
-Armazena as playlists geradas e salvas.
-
-id
-Identificador único da playlist.
-
-usuario_id
-Usuário que criou a playlist.
-
-nome
-Nome da playlist.
-
-descricao
-Descrição ou contexto da playlist.
-
-quantidade_musicas
-Quantidade de músicas existentes.
-
-duracao_total
-Duração total das músicas.
-
-criada_em
-Data de criação.
-
-🎧 Coleção: musicas
-Armazena as músicas pertencentes a cada playlist.
-
-id
-Identificador interno.
-
-playlist_id
-ID da playlist à qual a música pertence.
-
-titulo
-Título da música.
-
-artista
-Nome do artista.
-
-album
-Álbum relacionado.
-
-imagem
-URL da capa do álbum.
-
-duracao
-Duração da música.
-
-external_id
-Identificador da música retornado pela API pública.
-
-6. Exemplo de db.json
-A API fake poderá utilizar uma estrutura semelhante a:
+O arquivo db.json deverá possuir uma estrutura semelhante a:
 
 {
   "usuarios": [
     {
-      "id": "usr001",
-      "nome": "Vinyl User",
-      "email": "user@email.com",
-      "senha": "********",
-      "criado_em": "2026-09-05T20:00:00"
+      "id": "1",
+      "email": "usuario@email.com",
+      "senha": "senha"
     }
   ],
-
-  "referencias": [
-    {
-      "id": "ref001",
-      "usuario_id": "usr001",
-      "tipo": "artista",
-      "valor": "The Weeknd"
-    }
-  ],
-
   "playlists": [
     {
-      "id": "pl001",
-      "usuario_id": "usr001",
-      "nome": "Late Night Synthwave",
-      "descricao": "Curated for late-night listening sessions.",
-      "quantidade_musicas": 20,
-      "duracao_total": "1h 24min",
-      "criada_em": "2026-09-05T20:10:00"
-    }
-  ],
-
-  "musicas": [
-    {
-      "id": "mus001",
-      "playlist_id": "pl001",
-      "titulo": "Blinding Lights",
-      "artista": "The Weeknd",
-      "album": "After Hours",
-      "imagem": "/assets/images/blinding-lights.webp",
-      "duracao": "3:20",
-      "external_id": "external-001"
+      "id": "1",
+      "usuarioId": "1",
+      "titulo": "Midnight Discoveries",
+      "capa": "assets/images/playlist.jpg",
+      "dataCriacao": "2026-09-14",
+      "duracao": "1h 12min",
+      "musicas": [
+        {
+          "id": "101",
+          "titulo": "Exemplo Song",
+          "artista": "Example Artist",
+          "duracao": "3:42",
+          "capa": "https://example.com/cover.jpg"
+        }
+      ]
     }
   ]
 }
 
-7. APIs
-7.1 API Fake
-O projeto utilizará JSON Server para simular um backend.
 
-Será responsável por:
+---
 
-POST   /usuarios
-GET    /usuarios
-GET    /usuarios?email=
-POST   /referencias
-GET    /referencias
-POST   /playlists
-GET    /playlists
-GET    /playlists?usuario_id=
+7. API do JSON Server
+
+Usuários
+
+GET
+
+GET /usuarios
+
+Retorna os usuários cadastrados.
+
+POST
+
+POST /usuarios
+
+Cria um novo usuário.
+
+GET
+
+GET /usuarios/:id
+
+Retorna um usuário específico.
+
+
+---
+
+Playlists
+
+GET
+
+GET /playlists
+
+Retorna as playlists armazenadas.
+
+GET por usuário
+
+GET /playlists?usuarioId=1
+
+Retorna somente as playlists pertencentes ao usuário.
+
+GET específica
+
+GET /playlists/:id
+
+Retorna uma playlist específica.
+
+POST
+
+POST /playlists
+
+Cria uma nova playlist.
+
+PATCH
+
+PATCH /playlists/:id
+
+Atualiza uma playlist.
+
+DELETE
+
 DELETE /playlists/:id
-POST   /musicas
-GET    /musicas?playlist_id=
 
-Responsabilidades
-A API fake será utilizada para atender aos requisitos:
+Exclui uma playlist.
 
-ID 22 – requisições assíncronas para API fake;
-ID 23 – exibição de dados obtidos através da API fake.
+
+---
+
 8. API Pública de Música
-O sistema deverá consumir uma API pública real para buscar informações musicais.
 
-A integração será encapsulada dentro de:
+A aplicação utilizará uma API pública para obter informações musicais.
 
-services/
-└── musicService.js
+O fluxo de consulta será:
 
-Exemplo de responsabilidade:
+Usuário informa preferência
+            ↓
+JavaScript recebe o valor
+            ↓
+Requisição assíncrona
+            ↓
+API Pública de Música
+            ↓
+Resposta JSON
+            ↓
+Processamento dos dados
+            ↓
+Playlist de recomendações
 
-searchMusic(query)
+Os dados retornados pela API deverão ser convertidos para o formato utilizado pela aplicação.
 
-O serviço receberá:
+Exemplo:
 
-The Weeknd
+{
+  "id": "123",
+  "titulo": "Song Name",
+  "artista": "Artist Name",
+  "duracao": "3:45",
+  "capa": "https://example.com/image.jpg"
+}
 
-e retornará informações como:
 
-Título
-Artista
-Álbum
-Imagem
-Duração
-Identificador externo
+---
 
-Essa integração atende ao:
+9. Geração das Recomendações
 
-ID 24 – Realiza requisições assíncronas para APIs públicas reais.
+O usuário poderá informar:
 
-9. Geração da Playlist
-A geração da playlist será realizada pelo playlistService.
+Nome de artista.
 
-Fluxo:
+Nome de música.
 
-Usuário informa referências
+Estilo musical.
+
+Vibe ou termo relacionado à música.
+
+
+Após o envio:
+
+Entrada do usuário
         ↓
 Validação
         ↓
-MusicService
+Consulta à API
         ↓
-API pública
-        ↓
-Resultados encontrados
-        ↓
-Filtro de músicas
-        ↓
-Remoção de duplicadas
-        ↓
-Montagem da playlist
-        ↓
-Renderização
+Resultados encontrados?
+    ↙             ↘
+  NÃO              SIM
+   ↓                ↓
+Mensagem        Processamento
+de erro             ↓
+                Remoção de
+                duplicados
+                     ↓
+                Seleção das
+                recomendações
+                     ↓
+                  Playlist
 
-A primeira versão não utilizará Machine Learning.
+A quantidade de músicas retornadas deverá ser limitada para manter a interface organizada.
 
-A similaridade poderá ser simulada através de:
 
-artista relacionado;
-gênero;
-termos de busca;
-referências fornecidas;
-resultados retornados pela API.
-Isso mantém o projeto dentro do escopo acadêmico sem exigir implementação de um sistema complexo de recomendação.
+---
 
-10. Estrutura de Diretórios
-A aplicação deverá ser organizada de maneira modular.
+10. Autenticação
+
+A autenticação será implementada de forma simplificada para fins acadêmicos.
+
+Cadastro
+
+Formulário
+    ↓
+Validação
+    ↓
+POST /usuarios
+    ↓
+Usuário criado
+
+Login
+
+E-mail + senha
+      ↓
+GET /usuarios
+      ↓
+Comparação das credenciais
+      ↓
+Usuário encontrado?
+   ↙          ↘
+ NÃO          SIM
+  ↓            ↓
+Erro       Criar sessão
+               ↓
+           localStorage
+               ↓
+         Página principal
+
+
+---
+
+11. Web Storage
+
+O localStorage será utilizado para controlar a sessão do usuário.
+
+Exemplo:
+
+localStorage.setItem(
+    "usuarioLogado",
+    JSON.stringify({
+        id: "1",
+        email: "usuario@email.com"
+    })
+);
+
+Para recuperar a sessão:
+
+const usuario = JSON.parse(
+    localStorage.getItem("usuarioLogado")
+);
+
+A senha não deverá ser armazenada no localStorage.
+
+
+---
+
+12. Proteção de Rotas
+
+Páginas que dependem de autenticação deverão verificar a existência de uma sessão válida.
+
+Acessar página protegida
+          ↓
+Existe sessão?
+      ↙       ↘
+    NÃO        SIM
+     ↓          ↓
+ Login       Permitir
+
+Exemplos de páginas protegidas:
+
+Crate Digger
+
+Playlist
+
+Library
+
+
+
+---
+
+13. Estrutura de Pastas
 
 midnight-vinyl/
 │
+├── docs/
+│   ├── prd.md
+│   ├── architecture.md
+│   └── design-system.md
+│
+├── src/
+│   ├── css/
+│   │   └── main.css
+│   │
+│   ├── scss/
+│   │   ├── abstracts/
+│   │   │   ├── _variables.scss
+│   │   │   └── _mixins.scss
+│   │   │
+│   │   ├── components/
+│   │   │   ├── _buttons.scss
+│   │   │   ├── _cards.scss
+│   │   │   ├── _forms.scss
+│   │   │   └── _navbar.scss
+│   │   │
+│   │   ├── pages/
+│   │   │   ├── _home.scss
+│   │   │   ├── _auth.scss
+│   │   │   ├── _crate-digger.scss
+│   │   │   ├── _playlist.scss
+│   │   │   └── _library.scss
+│   │   │
+│   │   └── main.scss
+│   │
+│   ├── js/
+│   │   ├── main.js
+│   │   ├── auth.js
+│   │   ├── crate-digger.js
+│   │   ├── playlist.js
+│   │   ├── library.js
+│   │   ├── api.js
+│   │   ├── storage.js
+│   │   ├── validation.js
+│   │   └── utils.js
+│   │
+│   ├── pages/
+│   │   ├── login.html
+│   │   ├── signup.html
+│   │   ├── crate-digger.html
+│   │   ├── playlist.html
+│   │   └── library.html
+│   │
+│   └── assets/
+│       ├── images/
+│       └── icons/
+│
+├── db.json
+├── routes.json
+├── package.json
+├── .gitignore
+└── README.md
+
+
+---
+
+14. Organização dos Módulos JavaScript
+
+main.js
+
+Responsável pela inicialização geral da aplicação.
+
+Funções:
+
+Inicialização dos componentes.
+
+Eventos globais.
+
+Verificação da página atual.
+
+
+
+---
+
+auth.js
+
+Responsável por:
+
+Cadastro.
+
+Login.
+
+Logout.
+
+Verificação de usuário.
+
+Redirecionamento após autenticação.
+
+
+
+---
+
+crate-digger.js
+
+Responsável por:
+
+Capturar a entrada do usuário.
+
+Validar a busca.
+
+Chamar a API pública.
+
+Processar os resultados.
+
+Gerar a playlist.
+
+
+
+---
+
+playlist.js
+
+Responsável por:
+
+Renderizar a playlist.
+
+Salvar a playlist.
+
+Descartar a playlist.
+
+Exibir estados de carregamento e erro.
+
+
+
+---
+
+library.js
+
+Responsável por:
+
+Buscar playlists do usuário.
+
+Renderizar a Library.
+
+Abrir playlists.
+
+Excluir playlists.
+
+
+
+---
+
+api.js
+
+Centraliza as requisições externas.
+
+Exemplos:
+
+buscarMusicas()
+buscarArtistas()
+buscarRecomendacoes()
+buscarPlaylists()
+salvarPlaylist()
+excluirPlaylist()
+
+
+---
+
+storage.js
+
+Centraliza operações relacionadas ao Web Storage.
+
+Exemplos:
+
+salvarSessao()
+obterSessao()
+removerSessao()
+usuarioEstaLogado()
+
+
+---
+
+validation.js
+
+Responsável pelas validações dos formulários.
+
+
+---
+
+utils.js
+
+Conterá funções auxiliares reutilizáveis.
+
+Exemplos:
+
+formatarDuracao()
+formatarData()
+removerDuplicados()
+redirecionar()
+
+
+---
+
+15. Sass / SCSS
+
+O Sass será utilizado para organizar os estilos e facilitar a manutenção do Design System.
+
+Estrutura:
+
+scss/
+├── abstracts/
+├── components/
+├── pages/
+└── main.scss
+
+As variáveis visuais deverão ser centralizadas.
+
+Exemplo:
+
+$background: #0D0D0D;
+$surface: #151515;
+$card: #191919;
+$primary: #39FF78;
+$text-primary: #FFFFFF;
+$text-secondary: #8B8B8B;
+
+
+---
+
+16. Design System
+
+Cores
+
+Nome	Valor	Uso
+
+Background	#0D0D0D	Fundo principal
+Surface	#151515	Áreas secundárias
+Card	#191919	Cards e componentes
+Primary	#39FF78	Botões e destaques
+Text Primary	#FFFFFF	Textos principais
+Text Secondary	#8B8B8B	Textos secundários
+
+
+Tipografia
+
+A tipografia deverá priorizar:
+
+Legibilidade.
+
+Hierarquia visual.
+
+Contraste.
+
+Escalabilidade em diferentes tamanhos de tela.
+
+
+Os títulos deverão possuir maior peso e tamanho, enquanto textos auxiliares utilizarão tamanhos menores e cores secundárias.
+
+
+---
+
+17. Responsividade
+
+A aplicação seguirá uma abordagem mobile-first.
+
+Serão utilizados:
+
+Flexbox.
+
+CSS Grid.
+
+Media Queries.
+
+Unidades relativas.
+
+Componentes responsivos do MaterializeCSS.
+
+Tipografia fluida.
+
+
+Estrutura geral:
+
+Mobile
+  ↓
+Tablet
+  ↓
+Desktop
+
+Os layouts deverão se adaptar sem perda de funcionalidade.
+
+
+---
+
+18. Imagens
+
+As imagens utilizadas na aplicação deverão ser otimizadas sempre que possível.
+
+Serão consideradas técnicas como:
+
+WebP.
+
+srcset.
+
+Elemento <picture>.
+
+Lazy loading.
+
+Dimensões responsivas.
+
+
+Exemplo:
+
+<img
+    src="cover.webp"
+    srcset="
+        cover-small.webp 480w,
+        cover-medium.webp 768w,
+        cover-large.webp 1200w
+    "
+    loading="lazy"
+    alt="Capa da playlist"
+>
+
+
+---
+
+19. Formulários e Validação
+
+Os formulários deverão utilizar recursos nativos do HTML.
+
+Exemplo:
+
+<input
+    type="email"
+    name="email"
+    required
+>
+
+Também poderão ser utilizadas expressões regulares para validações específicas.
+
+Exemplo:
+
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+A biblioteca jQuery será utilizada na manipulação dos formulários e um plugin jQuery poderá ser utilizado para complementar a validação.
+
+
+---
+
+20. Requisições Assíncronas
+
+As requisições deverão ser realizadas de forma assíncrona utilizando JavaScript.
+
+Exemplo:
+
+async function buscarMusicas(termo) {
+    try {
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error("Erro ao consultar a API");
+        }
+
+        return await response.json();
+
+    } catch (error) {
+        console.error(error);
+        throw error;
+    }
+}
+
+A interface deverá apresentar diferentes estados:
+
+Idle
+ ↓
+Loading
+ ↓
+Success
+
+Em caso de falha:
+
+Loading
+ ↓
+Error
+
+Caso nenhum resultado seja encontrado:
+
+Loading
+ ↓
+Empty
+
+
+---
+
+21. Tratamento de Erros
+
+A aplicação deverá tratar erros relacionados a:
+
+API indisponível.
+
+Falha de conexão.
+
+Dados inválidos.
+
+Usuário inexistente.
+
+Credenciais incorretas.
+
+Playlist inexistente.
+
+Erro ao salvar.
+
+Erro ao excluir.
+
+
+As mensagens deverão ser apresentadas de forma clara ao usuário.
+
+
+---
+
+22. Componentes MaterializeCSS
+
+O MaterializeCSS poderá ser utilizado para componentes como:
+
+Navbar.
+
+Buttons.
+
+Cards.
+
+Inputs.
+
+Forms.
+
+Modal.
+
+Toast.
+
+Grid.
+
+Responsividade.
+
+
+Os componentes deverão ser adaptados para manter a identidade visual do Midnight Vinyl.
+
+
+---
+
+23. jQuery
+
+O jQuery será utilizado para manipulação do DOM e eventos.
+
+Exemplo:
+
+$("#search-button").on("click", function () {
+    iniciarBusca();
+});
+
+Também poderá ser utilizado para integração com plugins jQuery.
+
+
+---
+
+24. Scripts NPM
+
+O package.json deverá possuir scripts semelhantes a:
+
+{
+  "scripts": {
+    "json:server": "json-server --watch db.json",
+    "sass": "sass --watch src/scss/main.scss:src/css/main.css",
+    "lint": "eslint .",
+    "format": "prettier --write ."
+  }
+}
+
+
+---
+
+25. Git e GitHub
+
+O projeto será versionado utilizando Git.
+
+Sugestão de branches:
+
+main
+develop
+feature/auth
+feature/crate-digger
+feature/playlist
+feature/library
+feature/api
+feature/responsive
+
+Commits deverão utilizar mensagens claras e relacionadas à alteração realizada.
+
+Exemplos:
+
+feat: add user registration
+feat: implement playlist generation
+fix: handle music api errors
+style: improve library responsiveness
+docs: update architecture
+
+
+---
+
+26. ESLint e Prettier
+
+O ESLint será utilizado para identificar problemas no código JavaScript.
+
+O Prettier será utilizado para padronizar a formatação dos arquivos.
+
+Objetivos:
+
+Código consistente.
+
+Melhor legibilidade.
+
+Redução de erros.
+
+Padronização entre os arquivos.
+
+
+
+---
+
+27. Fluxo Completo da Aplicação
+
+┌──────────────┐
+                         │    Usuário   │
+                         └──────┬───────┘
+                                │
+                                ▼
+                     ┌────────────────────┐
+                     │    Landing Page    │
+                     └─────────┬──────────┘
+                               │
+                         Login / Cadastro
+                               │
+                               ▼
+                     ┌────────────────────┐
+                     │   Autenticação     │
+                     └─────────┬──────────┘
+                               │
+                               ▼
+                     ┌────────────────────┐
+                     │   Crate Digger     │
+                     └─────────┬──────────┘
+                               │
+                               ▼
+                     ┌────────────────────┐
+                     │ API Pública Música │
+                     └─────────┬──────────┘
+                               │
+                               ▼
+                     ┌────────────────────┐
+                     │ Recomendações      │
+                     └─────────┬──────────┘
+                               │
+                               ▼
+                     ┌────────────────────┐
+                     │ Playlist Gerada    │
+                     └──────┬───────┬─────┘
+                            │       │
+                         Salvar  Descartar
+                            │       │
+                            ▼       └──────► Crate Digger
+                     ┌───────────────┐
+                     │  JSON Server  │
+                     └───────┬───────┘
+                             │
+                             ▼
+                     ┌───────────────┐
+                     │    Library    │
+                     └───────────────┘
+
+
+---
+
+28. Segurança
+
+Como se trata de um projeto acadêmico utilizando JSON Server, a autenticação possui finalidade demonstrativa.
+
+Recomendações:
+
+Não armazenar senhas no localStorage.
+
+Não expor chaves de APIs no frontend quando isso não for permitido pelo serviço.
+
+Validar entradas do usuário.
+
+Não confiar exclusivamente em validações realizadas no cliente.
+
+Verificar a propriedade das playlists antes de permitir operações relacionadas a elas.
+
+
+Em uma aplicação de produção, seria necessário utilizar um backend real com autenticação segura, armazenamento protegido de senhas e controle de autorização.
+
+
+---
+
+29. Requisitos Técnicos Relacionados aos IDs
+
+ID	Implementação
+
+ID01	Protótipos mobile e desktop
+ID02	MaterializeCSS
+ID03	Flexbox e CSS Grid
+ID04	Componentes MaterializeCSS
+ID05	Unidades relativas
+ID06	Design System
+ID07	Sass/SCSS
+ID08	Tipografia responsiva
+ID09	Imagens responsivas
+ID10	WebP, srcset, picture e lazy loading
+ID11	Validação nativa HTML
+ID12	Expressões regulares
+ID13	Selects e outros elementos de seleção
+ID14	localStorage
+ID15	Node.js e NPM
+ID16	Git, GitHub e .gitignore
+ID17	README
+ID18	Arquitetura modular
+ID19	ESLint e Prettier
+ID20	jQuery
+ID21	Plugin jQuery
+ID22	JSON Server
+ID23	Consulta e exibição de dados do JSON Server
+ID24	API pública e tratamento de erros
+
+
+
+---
+
+30. Conclusão
+
+A arquitetura do Midnight Vinyl foi planejada para separar interface, lógica de aplicação e acesso aos dados.
+
+A utilização de módulos JavaScript, Sass, MaterializeCSS, JSON Server e uma API pública de música permite atender aos requisitos técnicos do projeto enquanto mantém a aplicação organizada e preparada para futuras funcionalidades.
+
+A estrutura também permite que novas funcionalidades sejam adicionadas posteriormente, como compartilhamento de playlists, integração com serviços de streaming e recursos sociais.
