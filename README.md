@@ -62,12 +62,12 @@ A interface do **Midnight Vinyl** foi desenvolvida com uma identidade visual ins
 
 ### Framework CSS
 
-* MaterializeCSS
+* Bulma
 
 ### APIs
 
 * JSON Server - Utilizado como API REST para persistência dos dados da aplicação.
-* API pública de música - Utilizada para pesquisa e recomendação de artistas e músicas.
+* API Spotify - Utilizada para pesquisa e recomendação de artistas e músicas.
 
 ### Ferramentas
 
