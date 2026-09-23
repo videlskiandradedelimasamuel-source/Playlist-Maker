@@ -11,7 +11,7 @@ A arquitetura será composta por:
 ```text
 ┌───────────────────────────────┐
 │           Frontend            │
-│ HTML + MaterializeCSS + JS    │
+│ HTML + BulmaCSS + JS    │
 └───────────────┬───────────────┘
                 │
         ┌───────┴────────┐
